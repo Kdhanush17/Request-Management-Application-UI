@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import './HomePage.css';
 
-const HomePage = () => {
+const HomePage = ({ isTestMode, toggleTestMode }) => {
     return (
         <div className="homepage-container">
             <div className="hero-section">
@@ -14,16 +14,28 @@ const HomePage = () => {
                     </div>
                 </div>
                 
+                {/* Improved Header Section */}
                 <header className="hero-header">
                     <div className="logo">
                         <h1>RequestFlow</h1>
                     </div>
                     <nav className="hero-nav">
+                        <button 
+                            onClick={toggleTestMode} 
+                            className="test-mode-btn"
+                            style={{ 
+                                background: isTestMode ? '#e53e3e' : '#38a169', 
+                                color: 'white'
+                            }}
+                        >
+                            {isTestMode ? 'Exit Test Mode' : 'Enter Test Mode'}
+                        </button>
                         <Link to="/login" className="nav-link">Sign In</Link>
                         <Link to="/register" className="nav-link primary">Get Started</Link>
                     </nav>
                 </header>
 
+                {/* Rest of your existing content remains the same */}
                 <div className="hero-content">
                     <div className="hero-text">
                         <h1>Streamline Your Workflow Management</h1>

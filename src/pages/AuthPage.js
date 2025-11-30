@@ -3,7 +3,7 @@ import Auth from '../Auth';
 import { useNavigate } from 'react-router-dom';
 import './AuthPage.css';
 
-const AuthPage = ({ setAuthData }) => {
+const AuthPage = ({ setAuthData, isTestMode }) => {
     const navigate = useNavigate();
 
     const handleSuccessfulAuth = (newToken, newUserRole, newUserId) => {
@@ -25,8 +25,9 @@ const AuthPage = ({ setAuthData }) => {
                     <div className="auth-header">
                         <h1 className="auth-title">RequestFlow</h1>
                         <p className="auth-subtitle">Streamline your workflow management</p>
+                        {isTestMode && <p className="test-mode-indicator" style={{color: 'red'}}>TEST MODE ACTIVE</p>}
                     </div>
-                    <Auth setAuthData={handleSuccessfulAuth} />
+                    <Auth setAuthData={handleSuccessfulAuth} isTestMode={isTestMode} />
                 </div>
             </div>
         </div>

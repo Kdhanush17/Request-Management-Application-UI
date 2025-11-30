@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage';
 import './App.css';
 
 function App() {
+    const [isTestMode, setIsTestMode] = useState(false); // New state for test mode
     const [token, setToken] = useState(localStorage.getItem('token'));
     const [userRole, setUserRole] = useState(localStorage.getItem('userRole'));
     const [userId, setUserId] = useState(parseInt(localStorage.getItem('userId')));
@@ -34,6 +35,11 @@ function App() {
         }
     };
 
+    const toggleTestMode = () => {
+        setIsTestMode(!isTestMode);
+        console.log(`Test mode is now: ${!isTestMode}`);
+    };
+
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('userRole');
@@ -47,9 +53,9 @@ function App() {
     return (
         <div className="App">
             <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/login" element={<AuthPage setAuthData={handleSetAuthData} />} />
-                <Route path="/register" element={<AuthPage setAuthData={handleSetAuthData} />} />
+                <Route path="/" element={<HomePage isTestMode={isTestMode} toggleTestMode={toggleTestMode} />} />
+                <Route path="/login" element={<AuthPage setAuthData={handleSetAuthData} isTestMode={isTestMode} />} />
+                <Route path="/register" element={<AuthPage setAuthData={handleSetAuthData} isTestMode={isTestMode} />} />
                 <Route
                     path="/dashboard"
                     element={
@@ -59,6 +65,7 @@ function App() {
                                 userRole={userRole}
                                 userId={userId}
                                 handleLogout={handleLogout}
+                                isTestMode={isTestMode} // Pass isTestMode to DashboardPage
                             />
                         ) : (
                             <HomePage />

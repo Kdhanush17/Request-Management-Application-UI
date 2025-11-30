@@ -148,3 +148,33 @@
     color: #c53030;
     border-color: #feb2b2;
 }
+.test-credentials-info {
+    background-color: #e0f7fa;
+    border: 1px solid #b2ebf2;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    color: #00796b;
+    font-size: 0.9em;
+}
+
+.test-credentials-info h3 {
+    margin-top: 0;
+    color: #004d40;
+    font-size: 1.1em;
+}
+
+.test-credentials-info ul {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0 0 0;
+}
+
+.test-credentials-info li {
+    margin-bottom: 5px;
+    line-height: 1.5;
+}
+
+.test-credentials-info li strong {
+    color: #004d40;
+}

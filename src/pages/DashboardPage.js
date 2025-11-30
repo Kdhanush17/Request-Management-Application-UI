@@ -4,21 +4,36 @@ import Requests from '../Requests';
 import axios from 'axios';
 import './DashboardPage.css';
 
-const DashboardPage = ({ token, userRole, userId, handleLogout }) => {
+const DashboardPage = ({ token, userRole, userId, handleLogout, isTestMode }) => {
     const navigate = useNavigate();
     const [employees, setEmployees] = useState([]);
     const [message, setMessage] = useState('');
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
-        if (!token) {
+        if (!token && !isTestMode) { // Redirect to login only if not in test mode and no token
             navigate('/login');
+        } else if (isTestMode) {
+            // In test mode, provide mock employee data
+            setEmployees([
+                { id: 101, username: 'Test Employee 1', email: 'test1@example.com' },
+                { id: 102, username: 'Test Employee 2', email: 'test2@example.com' },
+            ]);
         } else if (userRole === 'employee') {
             fetchEmployees();
         }
-    }, [token, userRole, navigate]);
+    }, [token, userRole, navigate, isTestMode]);
 
     const fetchEmployees = async () => {
+        if (isTestMode) {
+            // Mock employees for test mode
+            setEmployees([
+                { id: 101, username: 'Test Employee 1', email: 'test1@example.com' },
+                { id: 102, username: 'Test Employee 2', email: 'test2@example.com' },
+            ]);
+            setMessage('Using mock employee data in test mode.');
+            return;
+        }
         try {
             const res = await axios.get('http://localhost:5000/api/auth/employees', {
                 headers: { 'x-auth-token': token },
@@ -48,14 +63,14 @@ const DashboardPage = ({ token, userRole, userId, handleLogout }) => {
                         <span className="nav-icon">📋</span>
                         Requests
                     </a>
-                    <a href="#analytics" className="nav-item">
+                    {/* <a href="#analytics" className="nav-item">
                         <span className="nav-icon">📈</span>
                         Analytics
                     </a>
                     <a href="#settings" className="nav-item">
                         <span className="nav-icon">⚙️</span>
                         Settings
-                    </a>
+                    </a> */}
                 </nav>
             </div>
 
@@ -121,7 +136,7 @@ const DashboardPage = ({ token, userRole, userId, handleLogout }) => {
 
                     {/* Requests Section */}
                     <div className="requests-section-wrapper">
-                        <Requests token={token} userRole={userRole} userId={userId} employees={employees} />
+                        <Requests token={token} userRole={userRole} userId={userId} employees={employees} isTestMode={isTestMode} />
                     </div>
                 </div>
             </div>

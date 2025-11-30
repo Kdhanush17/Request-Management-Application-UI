@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './Requests.css';
 
-const Requests = ({ token, userRole, userId, employees }) => {
+const Requests = ({ token, userRole, userId, employees, isTestMode }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [assignedTo, setAssignedTo] = useState('');
@@ -18,13 +18,80 @@ const Requests = ({ token, userRole, userId, employees }) => {
         },
     };
 
+    // Mock data for test mode
+    const [mockRequests, setMockRequests] = useState([
+        {
+            id: 1,
+            title: 'Test Request 1 (Pending)',
+            description: 'This is a mock request pending approval.',
+            created_by_username: 'testemployee',
+            assigned_to_username: 'testmanager',
+            assigned_to: 2, // Assuming testmanager has id 2
+            status: 'pending_approval',
+            manager_approved: false,
+            created_at: new Date().toISOString(),
+        },
+        {
+            id: 2,
+            title: 'Test Request 2 (Approved)',
+            description: 'This is a mock request that has been approved.',
+            created_by_username: 'testemployee',
+            assigned_to_username: 'testemployee',
+            assigned_to: 1, // Assuming testemployee has id 1
+            status: 'approved',
+            manager_approved: true,
+            created_at: new Date().toISOString(),
+        },
+        {
+            id: 3,
+            title: 'Test Request 3 (Actioned)',
+            description: 'This is a mock request that has been actioned.',
+            created_by_username: 'testemployee',
+            assigned_to_username: 'testemployee',
+            assigned_to: 1, // Assuming testemployee has id 1
+            status: 'actioned',
+            manager_approved: true,
+            created_at: new Date().toISOString(),
+        },
+        {
+            id: 4,
+            title: 'Test Request 4 (Closed)',
+            description: 'This is a mock request that has been closed.',
+            created_by_username: 'testemployee',
+            assigned_to_username: 'testemployee',
+            assigned_to: 1, // Assuming testemployee has id 1
+            status: 'closed',
+            manager_approved: true,
+            created_at: new Date().toISOString(),
+        },
+        {
+            id: 5,
+            title: 'Test Request 5 (Rejected)',
+            description: 'This is a mock request that has been rejected.',
+            created_by_username: 'testemployee',
+            assigned_to_username: 'testmanager',
+            assigned_to: 2, // Assuming testmanager has id 2
+            status: 'rejected',
+            manager_approved: false,
+            created_at: new Date().toISOString(),
+        },
+    ]);
+
     useEffect(() => {
-        if (token) {
+        if (isTestMode) {
+            setRequests(mockRequests);
+            setMessage({ type: 'info', text: 'Using mock request data in test mode.' });
+        } else if (token) {
             fetchRequests();
         }
-    }, [token]);
+    }, [token, isTestMode, mockRequests]); // Added mockRequests to dependency array
 
     const fetchRequests = async () => {
+        if (isTestMode) {
+            setRequests(mockRequests);
+            setMessage({ type: 'info', text: 'Using mock request data in test mode.' });
+            return;
+        }
         try {
             const res = await axios.get(API_URL, config);
             setRequests(res.data);
@@ -35,45 +102,88 @@ const Requests = ({ token, userRole, userId, employees }) => {
 
     const handleCreateRequest = async (e) => {
         e.preventDefault();
-        try {
-            const res = await axios.post(API_URL, { title, description, assigned_to: parseInt(assignedTo) }, config);
-            setMessage({ type: 'success', text: 'Request created successfully!' });
+        if (isTestMode) {
+            const newRequestId = Math.max(...mockRequests.map(r => r.id)) + 1;
+            const assignedEmployee = employees.find(emp => emp.id === parseInt(assignedTo));
+            const newMockRequest = {
+                id: newRequestId,
+                title,
+                description,
+                created_by_username: userRole === 'employee' ? 'testemployee' : 'testmanager', // Placeholder for current user
+                assigned_to_username: assignedEmployee ? assignedEmployee.username : 'Unknown',
+                assigned_to: parseInt(assignedTo),
+                status: 'pending_approval',
+                manager_approved: false,
+                created_at: new Date().toISOString(),
+            };
+            setMockRequests(prev => [...prev, newMockRequest]);
+            setMessage({ type: 'success', text: 'Test request created successfully!' });
             setTitle('');
             setDescription('');
             setAssignedTo('');
-            fetchRequests();
-        } catch (err) {
-            setMessage({ type: 'error', text: err.response.data.message || 'Failed to create request' });
+            // No need to fetchRequests, as mockRequests state is directly updated
+        } else {
+            try {
+                const res = await axios.post(API_URL, { title, description, assigned_to: parseInt(assignedTo) }, config);
+                setMessage({ type: 'success', text: 'Request created successfully!' });
+                setTitle('');
+                setDescription('');
+                setAssignedTo('');
+                fetchRequests();
+            } catch (err) {
+                setMessage({ type: 'error', text: err.response.data.message || 'Failed to create request' });
+            }
         }
     };
 
     const handleApproveReject = async (requestId, status) => {
-        try {
-            const res = await axios.put(`${API_URL}/${requestId}/approve`, { status }, config);
-            setMessage({ type: 'success', text: `Request ${status} successfully!` });
-            fetchRequests();
-        } catch (err) {
-            setMessage({ type: 'error', text: err.response.data.message || `Failed to ${status} request` });
+        if (isTestMode) {
+            setMockRequests(prev => prev.map(req =>
+                req.id === requestId ? { ...req, status, manager_approved: status === 'approved' } : req
+            ));
+            setMessage({ type: 'success', text: `Test request ${status} successfully!` });
+        } else {
+            try {
+                const res = await axios.put(`${API_URL}/${requestId}/approve`, { status }, config);
+                setMessage({ type: 'success', text: `Request ${status} successfully!` });
+                fetchRequests();
+            } catch (err) {
+                setMessage({ type: 'error', text: err.response.data.message || `Failed to ${status} request` });
+            }
         }
     };
 
     const handleActionRequest = async (requestId) => {
-        try {
-            const res = await axios.put(`${API_URL}/${requestId}/action`, {}, config);
-            setMessage({ type: 'success', text: 'Request actioned successfully!' });
-            fetchRequests();
-        } catch (err) {
-            setMessage({ type: 'error', text: err.response.data.message || 'Failed to action request' });
+        if (isTestMode) {
+            setMockRequests(prev => prev.map(req =>
+                req.id === requestId ? { ...req, status: 'actioned' } : req
+            ));
+            setMessage({ type: 'success', text: 'Test request actioned successfully!' });
+        } else {
+            try {
+                const res = await axios.put(`${API_URL}/${requestId}/action`, {}, config);
+                setMessage({ type: 'success', text: 'Request actioned successfully!' });
+                fetchRequests();
+            } catch (err) {
+                setMessage({ type: 'error', text: err.response.data.message || 'Failed to action request' });
+            }
         }
     };
 
     const handleCloseRequest = async (requestId) => {
-        try {
-            const res = await axios.put(`${API_URL}/${requestId}/close`, {}, config);
-            setMessage({ type: 'success', text: 'Request closed successfully!' });
-            fetchRequests();
-        } catch (err) {
-            setMessage({ type: 'error', text: err.response.data.message || 'Failed to close request' });
+        if (isTestMode) {
+            setMockRequests(prev => prev.map(req =>
+                req.id === requestId ? { ...req, status: 'closed' } : req
+            ));
+            setMessage({ type: 'success', text: 'Test request closed successfully!' });
+        } else {
+            try {
+                const res = await axios.put(`${API_URL}/${requestId}/close`, {}, config);
+                setMessage({ type: 'success', text: 'Request closed successfully!' });
+                fetchRequests();
+            } catch (err) {
+                setMessage({ type: 'error', text: err.response.data.message || 'Failed to close request' });
+            }
         }
     };
 
